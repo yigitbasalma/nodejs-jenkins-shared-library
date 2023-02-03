@@ -57,9 +57,6 @@ def call(Map config) {
                         config.b_config.imageLatestTag = "latest"
 
                         config.commitID = commitID
-
-                        // Backend branch for objects
-                        config.backendBranch = "master"
                     }
                 }
             }
@@ -149,6 +146,14 @@ def call(Map config) {
                     lib_postbuildController(
                         config
                     )
+                }
+            }
+            success {
+                script {
+                    def publisher = LastChanges.getLastChangesPublisher "PREVIOUS_REVISION", "SIDE", "LINE", true, true, "", "", "", "", ""
+                    publisher.publishLastChanges()
+                    def htmlDiff = publisher.getHtmlDiff()
+                    writeFile file: 'build-diff.html', text: htmlDiff
                 }
             }
         }
