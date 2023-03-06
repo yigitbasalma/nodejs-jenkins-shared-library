@@ -1,9 +1,7 @@
 def call(Map config) {
 
     pipeline {
-        agent {
-            label "auto-devops"
-        }
+        agent any
 
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
