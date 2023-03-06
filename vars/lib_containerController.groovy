@@ -16,9 +16,7 @@ def call(Map config) {
 
     config.b_config.containerConfig.each { it ->
         def extraParams = []
-        def buildArgs = [
-            "--build-arg GIT_COMMIT=${GIT_COMMIT}",
-        ]
+        def buildArgs = []
 
         // Environments
         def repoName = it.name.replace("_", "-").toLowerCase()
