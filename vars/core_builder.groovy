@@ -122,6 +122,11 @@ def call(Map config) {
             }
 
             stage("Security Scan For Container") {
+                when {
+                    expression {
+                        return config.scan_container_image
+                    }
+                }
                 steps {
                     sh """
                     echo ${config.containerImages.join("\n")} > anchore_images
