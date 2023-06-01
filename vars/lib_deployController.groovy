@@ -1,28 +1,17 @@
 def call(Map config, String sshKeyFile) {
     // SSH key file permission
     sh "chmod 600 ${sshKeyFile}"
-    container_repository = config.container_artifact_repo_address
-
-    if ( config.scope == "branch" && params.IMAGE == "" ) {
-        currentBuild.result = "ABORTED"
-        error("You have to set IMAGE_ID parameter for branch deployment.")
-    }
-
-    // Configure init
-    image = params.IMAGE
-
-    // Set container id global
-    env.CONTAINER_IMAGE_ID = image
+    container_repository = "${config.container_artifact_repo_address}/${config.container_repo}"
 
     config.b_config.deploy.each { it ->
-        def name = it.name.replace("\$Identifier", config.container_repo).replace("_", "-")
-        def path = it.path.replace("\$Identifier", config.container_repo)
+        // Replacing {environment} definition in path for backward compatibility
+        path = "${it.path.replace('/{environment}', '')}/{environment}"
 
         if ( config.scope == "branch" ) {
-            path = "${path}/${config.target_branch}"
+            path = "${it.path}/branch/${config.target_branch}"
         }
 
-        "${it.type}"(config, image, it.repo, path, name, sshKeyFile, container_repository)
+        "${it.type}"(config, config.image, it.repo, path, it.name, sshKeyFile, container_repository)
     }
 }
 
