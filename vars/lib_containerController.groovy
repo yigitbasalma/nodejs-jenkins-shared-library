@@ -10,7 +10,7 @@ def call(Map config) {
 
     // Define constraints
     def builds = [:]
-    def container_repository = config.container_artifact_repo_address
+    def container_repository = "${config.container_artifact_repo_address}/${config.container_repo}"
 
     buildDescription("Container ID: ${config.b_config.imageTag}")
 
@@ -52,9 +52,9 @@ def call(Map config) {
 
     config.b_config.containerConfig.each { it ->
         // Environments
-        def repoName = it.name.replace("\$Identifier", config.container_repo).replace("_", "-")
+        def repoName = it.name
 
-        withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: "nexus-deployuser", usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
+        withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: "user-nexus", usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
             sh """
             docker login --username $USERNAME --password $PASSWORD ${container_repository}
                 docker push  ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageLatestTag} && \
