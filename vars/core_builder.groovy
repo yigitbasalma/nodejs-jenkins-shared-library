@@ -1,7 +1,7 @@
 def call(Map config) {
 
     pipeline {
-        agent any
+        agent {label 'docker-node'}
 
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
