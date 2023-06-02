@@ -3,6 +3,12 @@ def call(Map config) {
     pipeline {
         agent {label 'docker-node'}
 
+        options {
+            timeout(time: 5, unit: 'MINUTES')
+            buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
+            disableConcurrentBuilds()
+        }
+
         parameters {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
         }
