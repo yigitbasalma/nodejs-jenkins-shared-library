@@ -167,6 +167,10 @@ def call(Map config) {
                     publisher.publishLastChanges()
                     def htmlDiff = publisher.getHtmlDiff()
                     writeFile file: 'build-diff.html', text: htmlDiff
+
+                    lib_helper.triggerJob(
+                        config
+                    )
                 }
             }
         }
