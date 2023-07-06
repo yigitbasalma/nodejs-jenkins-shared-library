@@ -13,6 +13,23 @@ def call(Map config) {
             string(name: 'BRANCH', description: 'Branch to build', defaultValue: '')
         }
 
+        triggers {
+            GenericTrigger(
+                genericVariables: [
+                    [key: 'REF', value: '$.push.changes[0].old.name'],
+                ],
+                 causeString: 'Triggered by Bıtbucket',
+                 token: 'bitbucket_' + config.sonar_qube_project_key,
+                 printContributedVariables: false,
+                 printPostContent: false,
+                 silentResponse: false,
+                 shouldNotFlattern: false,
+
+                 regexpFilterText: '$REF',
+                 regexpFilterExpression: '^(development|uat)'
+            )
+        }
+
         stages {
             stage("Configure Init") {
                 steps {
@@ -65,6 +82,10 @@ def call(Map config) {
                         config.b_config.imageLatestTag = "latest"
 
                         config.commitID = commitID
+
+                        if ( config.b_config.containsKey("sequentialDeploymentMapping") ) {
+                            config.sequential_deployment_mapping = config.b_config.sequentialDeploymentMapping[config.target_branch]
+                        }
                     }
                 }
             }

@@ -15,6 +15,10 @@ def configureInit(Map config) {
         config.scope = "branch"
     }
 
+    if ( env.REF ) {
+        config.target_branch = env.REF
+    }
+
     buildName "${config.target_branch} - ${env.BUILD_NUMBER}"
 
     // SonarQube settings
@@ -26,7 +30,8 @@ def configureInit(Map config) {
 
     // Sequential deployment mapping
     config.sequential_deployment_mapping = [
-        "1_Build": "2_DeployToTest"
+        "1_Build": "2_DeployToTest",
+        "1_build": "2_deploy_to_test"
     ]
 }
 
