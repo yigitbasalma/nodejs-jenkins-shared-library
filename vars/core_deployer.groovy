@@ -51,9 +51,26 @@ def call(Map config) {
                             """,
                             returnStdout: true
                         ).trim()
+
+                        // Configure image from params
+                        if ( params.containsKey("IMAGE") && params.IMAGE != "" ) {
+                            config.image = params.IMAGE
+                        } else {
+                            currentBuild.result = "ABORTED"
+                            buildDescription("Error: You have to set IMAGE_ID parameter for branch deployment.")
+                            error("You have to set 'IMAGE' parameter.")
+                        }
+
+                        // Set container id global
+                        env.CONTAINER_IMAGE_ID = config.image
+
                         config.b_config.imageTag = commitID
                         config.b_config.imageLatestTag = "latest"
                         config.commitID = commitID
+
+                        if ( config.b_config.containsKey("sequentialDeploymentMapping") ) {
+                            config.sequential_deployment_mapping = config.b_config.sequentialDeploymentMapping[config.target_branch]
+                        }
                     }
                 }
             }
