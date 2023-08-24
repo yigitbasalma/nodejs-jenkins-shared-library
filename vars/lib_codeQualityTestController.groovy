@@ -8,10 +8,25 @@ def call(Map config) {
         """
     }
 
-    timeout(time: 1, unit: 'HOURS') {
-        def qg = waitForQualityGate()
-        if (qg.status != 'OK') {
-            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+    def taskID = sh(
+        script: "python3 -c 'print(\"\".join([\"=\".join(i.strip().split(\"=\")[1:]) for i in open(\".scannerwork/report-task.txt\", \"r\").readlines() if i.startswith(\"ceTaskUrl\")]))'",
+        returnStdout: true
+    ).trim()
+    def count = 0
+
+    withCredentials([string(credentialsId: 'sonarqube01-token', variable: 'TOKEN')]) {
+        while(count <= 60) {
+            def taskState = sh(
+                script: "python3 -c 'import requests;print(requests.get(\"${taskID}\", headers={\"Authorization\": \"Bearer ${TOKEN}\"}).json()[\"task\"][\"status\"])'",
+                returnStdout: true
+            ).trim()
+
+            if ( taskState == "SUCCESS" ) {
+                break
+            }
+
+            sleep(10)
+            count++
         }
     }
 }
