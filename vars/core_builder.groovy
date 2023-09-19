@@ -1,10 +1,10 @@
 def call(Map config) {
 
     pipeline {
-        agent {label 'docker-node'}
+        agent {label config.agent ? config.agent : 'docker-node'}
 
         options {
-            timeout(time: 15, unit: 'MINUTES')
+            timeout(time: 25, unit: 'MINUTES')
             buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
             disableConcurrentBuilds()
         }
@@ -90,15 +90,46 @@ def call(Map config) {
                 }
             }
 
-            stage("Pre-build Configurations") {
+            stage("Change Version Number") {
                 when {
                     expression {
-                        return config.b_config.controllers.preBuildController
+                        return config.b_config.controllers.versionNumberController
                     }
                 }
                 steps {
                     script {
-                        lib_helper.preBuildConfigurations(
+                        lib_versionController(
+                            config
+                        )
+                    }
+                }
+            }
+
+            stage("Run Unit tests") {
+                when {
+                    expression {
+                        return config.b_config.controllers.unitTestController &&
+                            config.b_config.controllers.buildController
+                    }
+                }
+                steps {
+                    script {
+                        lib_unitTestController(
+                            config
+                        )
+                    }
+                }
+            }
+
+            stage("Build Project") {
+                when {
+                    expression {
+                        return config.b_config.controllers.buildController
+                    }
+                }
+                steps {
+                    script {
+                        lib_buildController(
                             config
                         )
                     }
@@ -114,38 +145,6 @@ def call(Map config) {
                 steps {
                     script {
                         lib_containerController(
-                            config
-                        )
-                    }
-                }
-            }
-
-            stage("Run Tests") {
-                when {
-                    expression {
-                        return config.b_config.controllers.testController && 
-                            config.b_config.controllers.buildController
-                    }
-                }
-                steps {
-                    script {
-                        lib_testController(
-                            config
-                        )
-                    }
-                }
-            }
-
-            stage("Run SonarQube Code Quality") {
-                when {
-                    expression {
-                        return config.b_config.controllers.codeQualityTestController && 
-                            config.b_config.controllers.buildController
-                    }
-                }
-                steps {
-                    script {
-                        lib_codeQualityTestController(
                             config
                         )
                     }
@@ -177,9 +176,19 @@ def call(Map config) {
                         config
                     )
 
-                    lib_postBuildController(
+                    lib_postbuildController(
                         config
                     )
+                }
+
+                script {
+                    try {
+                        withCredentials([string(credentialsId: 'teams-webhook-url', variable: 'URL_WEBHOOK')]) {
+                            office365ConnectorSend webhookUrl: "${URL_WEBHOOK}"
+                        }
+                    } catch (_) {
+                        echo "Teams credential does not exists, skipping."
+                    }
                 }
             }
             success {

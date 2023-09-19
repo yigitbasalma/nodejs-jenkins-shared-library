@@ -1,10 +1,11 @@
 def call(Map config) {
 
     pipeline {
-        agent {label 'docker-node'}
+        agent {label config.agent ? config.agent : 'docker-node'}
 
         parameters {
             string(name: 'IMAGE', defaultValue: '', description: '')
+            string(name: 'TARGETS', defaultValue: '', description: '')
         }
 
         stages {
@@ -82,13 +83,10 @@ def call(Map config) {
                     }
                 }
                 steps {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'gitlab-deployuser-ssh', keyFileVariable: 'keyfile')]) {
-                        script {
-                            lib_deployController(
-                                config,
-                                keyfile
-                            )
-                        }
+                    script {
+                        lib_deployController(
+                            config
+                        )
                     }
                 }
             }
@@ -104,13 +102,29 @@ def call(Map config) {
                         config
                     )
 
-                    lib_postBuildController(
+                    lib_postbuildController(
                         config
                     )
+                }
+
+                script {
+                    try {
+                        withCredentials([string(credentialsId: 'teams-webhook-url', variable: 'URL_WEBHOOK')]) {
+                            office365ConnectorSend webhookUrl: "${URL_WEBHOOK}"
+                        }
+                    } catch (_) {
+                        echo "Teams credential does not exists, skipping."
+                    }
                 }
             }
             success {
                 buildDescription("Container ID: ${env.CONTAINER_IMAGE_ID}")
+
+                script {
+                    lib_helper.triggerJob(
+                        config
+                    )
+                }
             }
         }
 
