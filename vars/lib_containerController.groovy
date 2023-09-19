@@ -78,7 +78,7 @@ def call(Map config) {
         // Environments
         def repoName = it.name
 
-        withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: "user-nexus", usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
+        withCredentials([[$class:"UsernamePasswordMultiBinding", credentialsId: it.credentialsId ? it.credentialsId : "user-nexus", usernameVariable: "USERNAME", passwordVariable: "PASSWORD"]]) {
             sh """
             docker login --username $USERNAME --password $PASSWORD ${container_repository}
                 docker push ${container_repository}/${repoName.toLowerCase()}:${config.b_config.imageLatestTag} && \
