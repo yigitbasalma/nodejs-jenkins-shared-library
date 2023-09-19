@@ -175,10 +175,6 @@ def call(Map config) {
                     lib_cleanupController(
                         config
                     )
-
-                    lib_postbuildController(
-                        config
-                    )
                 }
 
                 script {
