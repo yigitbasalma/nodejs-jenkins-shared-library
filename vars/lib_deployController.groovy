@@ -42,7 +42,7 @@ def argocd(Map config, String image, Map r_config, String containerRepository) {
         }
 
         withCredentials([string(credentialsId: config.b_config.argocd[config.environment].tokenID, variable: 'TOKEN')]) {
-            sh """#!/bin/bash
+            sh """
             argocd app sync ${appName} \
                 --force \
                 --insecure \
