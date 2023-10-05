@@ -37,11 +37,9 @@ def argocd(Map config, String image, Map r_config, String containerRepository) {
 
         def appName = path.split('/')[1]
 
-        if ( config.b_config.argocd.containsKey('alias') ) {
-            appName = config.b_config.argocd.alias.replace('{environment}', config.environment)
+        if ( r_config.containsKey('alias') ) {
+            appName = r_config.alias.replace('{environment}', config.environment)
         }
-
-        sh "echo $appName"
 
         withCredentials([string(credentialsId: config.b_config.argocd[config.environment].tokenID, variable: 'TOKEN')]) {
             sh """#!/bin/bash
