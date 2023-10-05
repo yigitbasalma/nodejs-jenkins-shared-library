@@ -102,7 +102,7 @@ def call(Map config) {
                         config
                     )
 
-                    lib_postbuildController(
+                    lib_postBuildController(
                         config
                     )
                 }
