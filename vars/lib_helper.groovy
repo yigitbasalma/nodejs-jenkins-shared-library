@@ -16,7 +16,7 @@ def configureInit(Map config) {
     }
 
     if ( env.REF ) {
-        config.target_branch = env.REF
+        config.target_branch = env.REF.split("/")[-1]
     }
 
     buildName "${config.target_branch} - ${env.BUILD_NUMBER}"
