@@ -41,8 +41,6 @@ def argocd(Map config, String image, Map r_config, String containerRepository) {
             appName = config.b_config.argocd.alias.replace('{environment}', config.environment)
         }
 
-        sh "echo $appName"
-
         withCredentials([string(credentialsId: config.b_config.argocd[config.environment].tokenID, variable: 'TOKEN')]) {
             sh """#!/bin/bash
             argocd app sync ${appName} \
