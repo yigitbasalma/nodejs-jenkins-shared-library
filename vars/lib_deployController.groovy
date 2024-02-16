@@ -93,3 +93,31 @@ EOF
       """
     }
 }
+
+def compose(Map config, String image, Map r_config, String containerRepository) {
+    def envFile = r_config.env_file.replace("{environment}", config.environment)
+    def composeFileName = sh(
+        script: "python3 -c 'print(\"${r_config.file}\".split(\"/\")[-1])'",
+        returnStdout: true
+    ).trim()
+
+    sh """
+    echo >> ${envFile} && \
+    echo IMAGE="${containerRepository}/${config.b_config.project.name}:${image}" >> ${envFile} && \
+    echo CONTAINER_NAME="${r_config.name}" >> ${envFile}
+    """
+
+    sshagent(credentials: [config.remoteHostCredentialID]) {
+      sh """
+      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose/.env && \
+      scp -o StrictHostKeyChecking=no ${r_config.file} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose
+      """
+
+      sh """
+      ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
+cd /opt/docker-compose && \
+docker compose --env-file .env -f ${composeFileName} up -d
+EOF
+      """
+    }
+}
