@@ -19,7 +19,7 @@ def call(Map config) {
         triggers {
             GenericTrigger(
                 genericVariables: [
-                    [key: 'REF', value: '$.ref'],
+                    [key: 'REF', value: triggerRef],
                 ],
                  causeString: 'Triggered by Remote Event',
                  token: 'bitbucket_' + config.sonar_qube_project_key,
