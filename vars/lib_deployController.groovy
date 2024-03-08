@@ -109,14 +109,18 @@ def compose(Map config, String image, Map r_config, String containerRepository) 
 
     sshagent(credentials: [config.remoteHostCredentialID]) {
       sh """
-      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose/.env && \
-      scp -o StrictHostKeyChecking=no ${r_config.file} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose
+      ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} 'mkdir -p /opt/docker-compose-${config.b_config.project.name}'
+      """
+
+      sh """
+      scp -o StrictHostKeyChecking=no ${envFile} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose-${config.b_config.project.name}/.env && \
+      scp -o StrictHostKeyChecking=no ${r_config.file} ${config.remoteUser}@${config.remoteHost}:/opt/docker-compose-${config.b_config.project.name}
       """
 
       sh """
       ssh -o StrictHostKeyChecking=no ${config.remoteUser}@${config.remoteHost} << EOF
-cd /opt/docker-compose && \
-docker compose --env-file .env -f ${composeFileName} up -d
+cd /opt/docker-compose-${config.b_config.project.name} && \
+docker compose --env-file .env -f ${composeFileName} up -d --remove-orphans --force-recreate
 EOF
       """
     }
