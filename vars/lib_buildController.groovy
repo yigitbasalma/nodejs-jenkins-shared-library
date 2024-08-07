@@ -1,12 +1,15 @@
 def call(Map config) {
     def builder = "npm"
+    def projectConfig = config.b_config.project
+    def projectPath = projectConfig.path ? projectConfig.path : '.' //set path under the project to use monorepo
 
-    if ( config.b_config.project.builderVersion != "nodejs" ) {
-        builder = "${tool config.b_config.project.builderVersion}/bin/npm"
+    if ( projectConfig.builderVersion != "nodejs" ) {
+        builder = "${tool projectConfig.builderVersion}/bin/npm"
     }
 
     sh """
+    cd ${projectPath} && \
     ${builder} install && \
-    ${builder} run ${config.b_config.project.buildCommand ? config.b_config.project.buildCommand : 'build'}
+    ${builder} run ${projectConfig.buildCommand ? projectConfig.buildCommand : 'build'}
     """
 }
